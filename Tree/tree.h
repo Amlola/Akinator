@@ -9,7 +9,7 @@
 #include <math.h>
 
 
-#define CHECKTREEERROR(tree)                             \
+#define CHECK_TREE_ERROR(tree)                           \
                     if (TreeVerify(tree) != TREE_OK)     \
                         {                                \
                         ON_DUMP                          \
@@ -27,7 +27,6 @@
 #else
     #define ON_DUMP(...)
 #endif
-
 
 typedef char* Tree_type;
 
@@ -82,8 +81,6 @@ struct Text
 static FILE* graph_file = NULL;
 
 static FILE* logfile = NULL;
-
-const int MAX_SIZE_DATA = 100;
 
 const int MAX_COMMAND_LENGTH = 125;
 

@@ -99,8 +99,7 @@ Type_error TreeDelete(Tree* tree, Node* node)
 
 Type_error TreePrefixPrint(Tree* tree, Node* node, FILE* file)
     {
-    // TODO: CHECK_TREE_ERROR
-    CHECKTREEERROR(tree);
+    CHECK_TREE_ERROR(tree);
     
     if (node == nullptr) 
         {
@@ -244,13 +243,15 @@ bool TreeVerify(Tree* tree)
         tree->status |= TREE_ROOT_IS_NULL;
         }
 
+    else 
+        {
+        CheckTreeLinks(tree, tree->root);
+        }
+
     if (tree->size < 0) 
         {
         tree->status != TREE_SIZE_LESS_THAN_ZERO;
         }
-
-    // TODO: ...
-    CheckTreeLinks(tree, tree->root);
 
     return tree->status;
     }

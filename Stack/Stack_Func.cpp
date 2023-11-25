@@ -101,7 +101,7 @@ int StackPop(Stack* stk, Stack_type* retvalue)
 
     if (stk->stack_pos < stk->stack_size / 4)
         {
-        StackResize(stk, stk->stack_size / 2); //обработать StackResize под ошибки
+        StackResize(stk, stk->stack_size / 2);
         }
         
     CHECKERROR(stk);

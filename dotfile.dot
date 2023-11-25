@@ -1,0 +1,51 @@
+digraph struct {bgcolor=RosyBrown rankdir = HR
+
+
+node0[shape=record, style=filled, fillcolor="red", label=" {Animal}"];
+node0->node1 [color = "lime"];
+node1[shape=record, style=filled, fillcolor="lime", label=" {People}"];
+node1->node2 [color = "lime"];
+node2[shape=record, style=filled, fillcolor="lime", label=" {Flower}"];
+node2->node3 [color = "lime"];
+node3[shape=record, style=filled, fillcolor="lime", label=" {fruit}"];
+node3->node4 [color = "lime"];
+node4[shape=record, style=filled, fillcolor="lime", label=" {blondinka}"];
+node4->node5 [color = "lime"];
+node5[shape=record, style=filled, fillcolor="lime", label=" {RT}"];
+node4->node6 [color = "aqua"];
+node6[shape=record, style=filled, fillcolor="aqua", label=" {Woman}"];
+node3->node7 [color = "aqua"];
+node7[shape=record, style=filled, fillcolor="aqua", label=" {apple}"];
+node2->node8 [color = "aqua"];
+node8[shape=record, style=filled, fillcolor="aqua", label=" {Purple}"];
+node8->node9 [color = "lime"];
+node9[shape=record, style=filled, fillcolor="lime", label=" {Rose}"];
+node8->node10 [color = "aqua"];
+node10[shape=record, style=filled, fillcolor="aqua", label=" {Lilia}"];
+node1->node11 [color = "aqua"];
+node11[shape=record, style=filled, fillcolor="aqua", label=" {Teach Matan}"];
+node11->node12 [color = "lime"];
+node12[shape=record, style=filled, fillcolor="lime", label=" {Ded}"];
+node11->node13 [color = "aqua"];
+node13[shape=record, style=filled, fillcolor="aqua", label=" {Lunina}"];
+node0->node14 [color = "aqua"];
+node14[shape=record, style=filled, fillcolor="aqua", label=" {blue}"];
+node14->node15 [color = "lime"];
+node15[shape=record, style=filled, fillcolor="lime", label=" {pink}"];
+node15->node16 [color = "lime"];
+node16[shape=record, style=filled, fillcolor="lime", label=" {Home Animal}"];
+node16->node17 [color = "lime"];
+node17[shape=record, style=filled, fillcolor="lime", label=" {Frog}"];
+node16->node18 [color = "aqua"];
+node18[shape=record, style=filled, fillcolor="aqua", label=" {dog}"];
+node15->node19 [color = "aqua"];
+node19[shape=record, style=filled, fillcolor="aqua", label=" {Flamingo}"];
+node14->node20 [color = "aqua"];
+node20[shape=record, style=filled, fillcolor="aqua", label=" {small}"];
+node20->node21 [color = "lime"];
+node21[shape=record, style=filled, fillcolor="lime", label=" {Kit}"];
+node20->node22 [color = "aqua"];
+node22[shape=record, style=filled, fillcolor="aqua", label=" {fish}"];
+
+
+}

@@ -1,7 +1,7 @@
 all: Akinator
 
 Akinator: main.o tree.o akinator.o Stack_Func.o
-	g++ -g -o myprog.exe main.o tree.o akinator.o Stack_Func.o -o Akinator
+	g++ -g -o Akinator main.o tree.o akinator.o Stack_Func.o
 
 main.o: main.cpp
 	g++ -g -DDUMP -c main.cpp

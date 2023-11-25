@@ -12,15 +12,11 @@ const size_t MAX_STRING_LEN = 100;
 const size_t MAX_ANS_LEN = 10;
 
 
-const size_t MAX_AGAIN = 10;
-
-
-void Game(Tree* tree, FILE* data_base, Text* data);
-
+void Game(Tree* tree);
 
 Type_error GuessHero(Tree* tree);
 
-Type_error GetLine(Tree* tree, char** string);
+Type_error GetLine(Tree* tree, char string[], size_t MAX_INPUT_LEN);
 
 Type_error Save(Tree* tree);
 
@@ -45,5 +41,3 @@ void TellAbout(Node* node, Stack* stk);
 Type_error CompareHeroes(Tree* tree);
 
 Type_error GetDifferent(Tree* tree, Node* node);
-
-Type_error GetL(Tree* tree, char string[]);

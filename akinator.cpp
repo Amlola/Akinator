@@ -1,15 +1,9 @@
 #include "akinator.h"
 
 
-#define Say(str)     \
-	puts(str);	     \
-	txSpeak(str)
 
-
-void Game(Tree* tree, FILE* data_base, Text* data)
-    {
-    txPlaySound(".\\music1.wav");
-    
+void Game(Tree* tree)
+    {    
     char c = 0;
 
     while (c != 'e')
@@ -18,9 +12,9 @@ void Game(Tree* tree, FILE* data_base, Text* data)
 
         char ans[MAX_ANS_LEN] = "";
 
-        GetL(tree, ans);
+        GetLine(tree, ans, MAX_ANS_LEN);
 
-        c = ans[0];
+        c = ans[0]; 
 
         if (strlen(ans) > 1) 
             {
@@ -82,7 +76,7 @@ Type_error GuessHero(Tree* tree)
         {
         printf("Your hero is %s?(yes/no)\n", node->data);
 
-        GetL(tree, ans);
+        GetLine(tree, ans, MAX_ANS_LEN);
 
         if (strcmp(ans, "yes") == 0)
             {
@@ -103,9 +97,7 @@ Type_error GuessHero(Tree* tree)
 
     printf("It is %s?(yes/no)\n", node->data);
 
-    GetL(tree, ans);
-
-    
+    GetLine(tree, ans, MAX_ANS_LEN);
 
     if (strcmp(ans, "yes") == 0)
         {
@@ -133,15 +125,15 @@ Type_error GetDifferent(Tree* tree, Node* node)
 
     printf("Who was that?\n");
 
-    char node_right_string[MAX_STRING_LEN] = "";
+    char* node_right_string = (char*)calloc(MAX_STRING_LEN, sizeof(char));
 
-    GetL(tree, node_right_string);
+    GetLine(tree, node_right_string, MAX_STRING_LEN);
 
     printf("And how are %s different from %s?\n", node_right_string, node->data);
 
-    char* characteristic = nullptr;
+    char* characteristic = (char*)calloc(MAX_STRING_LEN, sizeof(char));
 
-    GetLine(tree, &characteristic);
+    GetLine(tree, characteristic, MAX_STRING_LEN);
 
     char* node_left_string = node->data;
 
@@ -149,48 +141,20 @@ Type_error GetDifferent(Tree* tree, Node* node)
 
     TreeInsert(tree, node, node_left_string, L_CHILD);
 
-    TreeInsert(tree, node, (Tree_type)node_right_string, R_CHILD);
+    TreeInsert(tree, node, node_right_string, R_CHILD);
 
     return tree->status;
     }
 
 
 
-Type_error GetLine(Tree* tree, char** string)
-    { 
-    // TODO: Зачем выделять память динамически?
-    *string = (char*)calloc(MAX_STRING_LEN, sizeof(char));
-
-    char c =  0;
-
-    size_t ptr  =  0;
-
-    while (true)
-        {
-        c = getchar();
-
-        if (c == '\n')
-            {
-            (*string)[ptr] = '\0';
-
-            return tree->status;
-            }
-
-        (*string)[ptr++] = c;
-        }
-
-    return tree->status;
-    }
-
-
-
-Type_error GetL(Tree* tree, char string[]) 
+Type_error GetLine(Tree* tree, char string[], size_t MAX_INPUT_LEN)
     {
-    char c =  0;
+    char c = 0;
 
-    size_t ptr  =  0;
+    size_t ptr = 0;
 
-    while (true)
+    while (ptr < MAX_INPUT_LEN)
         {
         c = getchar();
 
@@ -202,6 +166,28 @@ Type_error GetL(Tree* tree, char string[])
             }
 
         string[ptr++] = c;
+        }
+
+    fflush(stdin);
+
+    printf("Maximum allowed string length is %d.\n", MAX_INPUT_LEN);
+
+    printf("Do you want to save string %s?(yes/no)\n", string);
+
+    char ans[MAX_ANS_LEN] = "";
+
+    scanf("%s", &ans);
+
+    fflush(stdin);
+
+    if (strcmp(ans, "yes") == 0) 
+        {
+        return tree->status;
+        }
+
+    else 
+        {
+        Game(tree);
         }
 
     return tree->status;
@@ -314,9 +300,9 @@ Type_error DescribeHero(Tree* tree)
     {
     printf("Which hero would you like to describe?\n");
 
-    char* hero = nullptr;
+    char hero[MAX_STRING_LEN] = "";
 
-    GetLine(tree, &hero);
+    GetLine(tree, hero, MAX_STRING_LEN);
 
     Node* object = GetNode(tree->root, hero);
 
@@ -423,7 +409,9 @@ Type_error CompareHeroes(Tree* tree)
         {
         printf("Hero number %d: ", i + 1);
 
-        GetLine(tree, &hero[i]);
+        hero[i] = (char*)calloc(MAX_STRING_LEN, sizeof(char));
+
+        GetLine(tree, hero[i], MAX_STRING_LEN);
         } 
 
     Stack stks[2]  = {};

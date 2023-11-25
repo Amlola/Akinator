@@ -16,9 +16,9 @@ int main()
 
     TreeRead(&tree, &data);
 
-    //TreeDump(&tree);
+    txPlaySound(".\\music1.wav");
 
-    Game(&tree, data_base, &data);
+    Game(&tree);
 
     return 0;
     }

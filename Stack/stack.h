@@ -159,5 +159,3 @@ hash_type static CalculateHashData(Stack* stk);
 static void FillPoisonValue(Stack* stk);
 
 static void Copy(Stack* stk, Stack_type* dataResize);
-
-//Stack_type StackTop(Stack* stk);
