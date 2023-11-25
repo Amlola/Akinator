@@ -16,7 +16,7 @@ int main()
 
     TreeRead(&tree, &data);
 
-    fclose(data_base);
+    //TreeDump(&tree);
 
     Game(&tree, data_base, &data);
 

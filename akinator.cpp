@@ -1,64 +1,88 @@
 #include "akinator.h"
 
 
+#define Say(str)     \
+	puts(str);	     \
+	txSpeak(str)
+
+
 void Game(Tree* tree, FILE* data_base, Text* data)
     {
+    txPlaySound(".\\music1.wav");
+    
     char c = 0;
 
     while (c != 'e')
         {
         printf("Choose option: exit_with_[s]ave/[g]uess_hero/[d]escribe/[c]ompare/[t]ree_show/[e]xit_without_save\n");
 
-        c = getc(stdin);
-        getc(stdin);
+        char ans[MAX_ANS_LEN] = "";
 
-        switch (c)
+        GetL(tree, ans);
+
+        c = ans[0];
+
+        if (strlen(ans) > 1) 
             {
-            case 's':
-                Save(tree);
-                c = 'e';
-                printf("Bye!");
-                break;
+            printf("I don't understand\n");
 
-            case 't':
-                TreeShow(tree);
-                break;
+            printf("Try again\n");
+            }
 
-            case 'e':
-                printf("Bye!");
-                break;
+        else 
+            {
+            switch (c)
+                {
+                case 's':
+                    Save(tree);
+                    c = 'e';
+                    printf("Bye!");
+                    break;
 
-            case 'd':
-                DescribeHero(tree);
-                break;
+                case 't':
+                    TreeShow(tree);
+                    break;
 
-            case 'c':
-                CompareHeroes(tree);
-                break;
+                case 'e':
+                    printf("Bye!");
+                    break;
 
-            case 'g':
-                GuessHero(tree);
-                break;
+                case 'd':
+                    DescribeHero(tree);
+                    break;
 
-            default:
-                printf("I don't understand\n");
-                break;
+                case 'c':
+                    CompareHeroes(tree);
+                    break;
+
+                case 'g':
+                    GuessHero(tree);
+                    break;
+
+                default:
+                    printf("I don't understand\n");
+                    printf("Try again\n");
+                    break;
+                }
             }
         }
+    
+    TreeDtor(tree);
     }
+
 
 
 Type_error GuessHero(Tree* tree) 
     {
     Node* node = tree->root;
 
-    char* ans = nullptr;
+    char ans[MAX_ANS_LEN] = "";
     
     while (node->left != nullptr && node->right != nullptr)
         {
         printf("Your hero is %s?(yes/no)\n", node->data);
 
-        GetLine(tree, &ans);
+        GetL(tree, ans);
 
         if (strcmp(ans, "yes") == 0)
             {
@@ -79,36 +103,23 @@ Type_error GuessHero(Tree* tree)
 
     printf("It is %s?(yes/no)\n", node->data);
 
-    GetLine(tree, &ans);
+    GetL(tree, ans);
+
+    
 
     if (strcmp(ans, "yes") == 0)
         {
         printf("I know. It's easy\n");
         }
 
-    else
+    else if (strcmp(ans, "no") == 0)
         {
-        printf("Okey, then tell me\n");
-
-        printf("Who was that?\n");
-
-        char* node_right_string = nullptr;
-
-        GetLine(tree, &node_right_string);
-
-        printf("And how are %s different from %s?\n", node_right_string, node->data);
-
-        char* characteristic = nullptr;
-
-        GetLine(tree, &characteristic);
-
-        const char* node_left_string = node->data;
-
-        node->data = characteristic;
-
-        TreeInsert(tree, node, node_left_string, L_CHILD);
-
-        TreeInsert(tree, node, node_right_string, R_CHILD);
+        GetDifferent(tree, node);
+        }
+    
+    else 
+        {
+        printf("I don't understand you. Try again\n");
         }
 
     return tree->status;
@@ -116,8 +127,38 @@ Type_error GuessHero(Tree* tree)
 
 
 
-Type_error GetLine(Tree* tree, char** string)
+Type_error GetDifferent(Tree* tree, Node* node) 
     {
+    printf("Okey, then tell me\n");
+
+    printf("Who was that?\n");
+
+    char node_right_string[MAX_STRING_LEN] = "";
+
+    GetL(tree, node_right_string);
+
+    printf("And how are %s different from %s?\n", node_right_string, node->data);
+
+    char* characteristic = nullptr;
+
+    GetLine(tree, &characteristic);
+
+    char* node_left_string = node->data;
+
+    node->data = characteristic;
+
+    TreeInsert(tree, node, node_left_string, L_CHILD);
+
+    TreeInsert(tree, node, (Tree_type)node_right_string, R_CHILD);
+
+    return tree->status;
+    }
+
+
+
+Type_error GetLine(Tree* tree, char** string)
+    { 
+    // TODO: Зачем выделять память динамически?
     *string = (char*)calloc(MAX_STRING_LEN, sizeof(char));
 
     char c =  0;
@@ -143,6 +184,31 @@ Type_error GetLine(Tree* tree, char** string)
 
 
 
+Type_error GetL(Tree* tree, char string[]) 
+    {
+    char c =  0;
+
+    size_t ptr  =  0;
+
+    while (true)
+        {
+        c = getchar();
+
+        if (c == '\n')
+            {
+            string[ptr] = '\0';
+
+            return tree->status;
+            }
+
+        string[ptr++] = c;
+        }
+
+    return tree->status;
+    }
+
+
+
 Type_error Save(Tree* tree) 
     {
     FILE* data_base = fopen("tree.txt", "w");
@@ -154,63 +220,38 @@ Type_error Save(Tree* tree)
 
 
 
-void NodeGraph(Node* node, size_t* number_of_node, Child child) 
+void NodeGraph(Node* node, size_t* number_of_node, Child child, const char* color) 
     {
-    PrintNode(node, number_of_node, child);
+    PrintNode(node, number_of_node, child, color);
 
     size_t current_number_of_node = *number_of_node;
 
     if (node->left)
         {
-        GraphEdge(current_number_of_node, ++(*number_of_node), L_CHILD);
+        GraphEdge(current_number_of_node, ++(*number_of_node), L_CHILD, "lime");
 
-        NodeGraph(node->left, number_of_node, L_CHILD);
+        NodeGraph(node->left, number_of_node, L_CHILD, "lime");
         }
 
     if (node->right)
         {
-        GraphEdge(current_number_of_node, ++(*number_of_node), R_CHILD);
+        GraphEdge(current_number_of_node, ++(*number_of_node), R_CHILD, "aqua");
 
-        NodeGraph(node->right, number_of_node, R_CHILD);
+        NodeGraph(node->right, number_of_node, R_CHILD, "aqua");
         } 
     }
 
 
-void GraphEdge(size_t from, size_t to, Child child) 
+void GraphEdge(size_t from, size_t to, Child child, const char* color) 
     {
-    if (child == L_CHILD)
-        {
-        print("node%d->node%d [color = \"lime\"];\n", from, to);
-        }
-
-    else
-        {
-        print("node%d->node%d [color = \"aqua\"];\n", from, to);
-        }
+    print("node%d->node%d [color = \"%s\"];\n", from, to, color);
     }
 
 
-void PrintNode(Node* node, size_t* number_of_node, Child child) 
+void PrintNode(Node* node, size_t* number_of_node, Child child, const char* color) 
     {
-    if (*number_of_node == 0) 
-        {
-        print("node%d[shape=record, style=filled, fillcolor=\"red\", label=\" {%s}\"];\n", 
-                                              *number_of_node, node->data);
-        }
-
-    else 
-        {
-        if (child == L_CHILD) 
-            {
-            print("node%d[shape=record, style=filled, fillcolor=\"lime\", label=\" {%s}\"];\n", 
-                                              *number_of_node, node->data);
-            }
-        else 
-            {
-            print("node%d[shape=record, style=filled, fillcolor=\"aqua\", label=\" {%s}\"];\n", 
-                                              *number_of_node, node->data);  
-            }
-        }
+    print("node%d[shape=record, style=filled, fillcolor=\"%s\", label=\" {%s}\"];\n", 
+                                              *number_of_node, color, node->data);
     }
 
 
@@ -222,75 +263,54 @@ void TreeShow(Tree* tree)
 
     print("digraph struct {bgcolor=RosyBrown rankdir = HR\n\n\n");
 
-    NodeGraph(tree->root, &number_of_node, L_CHILD);
+    NodeGraph(tree->root, &number_of_node, L_CHILD, "red");
 
     print("\n\n}");
 
     fclose(graph_file);
 
     char shell_command[MAX_COMMAND_LENGTH] = "";
-        sprintf(shell_command, "dot -v -Tpng D:/Cprojects/Akinator/dotfile.dot -o D:/Cprojects/Akinator/graph.png");
+        sprintf(shell_command, "dot -Tpng dotfile.dot -o graph.png");
         system(shell_command);
+        system(".\\graph.png");
     }
 
 
 
-bool FindHero(Tree* tree, Node* node, char* hero, Node** dest)
+Node* GetNode(Node* node, char* name)
     {
-    if (*dest != nullptr) return true;
+    assert (name);
 
-    bool find = false;
-     
-    if (strcmp(node->data, hero) == 0)
+    if (!node)
         {
-        *dest = node;
-
-        return true;
+        return nullptr;
         }
 
-    else
+    if (strcmp(node->data, name) == 0)
         {
-        if (node->left)  
-            {
-            find = FindHero(tree, node->left, hero, dest);
-            }
-
-        if (node->right) 
-            {
-            find = FindHero(tree, node->right, hero, dest); 
-            }
-
-        if (find) 
-            {
-            return find;
-            }
+        return node;
         }
+
+    Node* object = GetNode(node->left, name);
+
+    if (object)
+        { 
+        return object;
+        }
+
+    object = GetNode(node->right, name);
+
+    if (object)
+        { 
+        return object;
+        }
+
+    return nullptr;
+    }
+
     
-    return find;
-    }
 
-
-Type_error DescribeHeroNode(Tree* tree, Node* node, Stack* stk)
-    {
-    if (node == nullptr) 
-        {
-        return NODE_PTR_IS_NULL;
-        }
-
-    CHECKERROR(stk);
-
-    while (node->parent != nullptr)
-        {
-        StackPush(stk, (char*)node);
-
-        node = node->parent;
-        }
-        
-    return tree->status;
-    }
-
-
-Type_error DescribeHero(Tree* tree) 
+Type_error DescribeHero(Tree* tree)
     {
     printf("Which hero would you like to describe?\n");
 
@@ -298,51 +318,97 @@ Type_error DescribeHero(Tree* tree)
 
     GetLine(tree, &hero);
 
-    Node* node = nullptr;
+    Node* object = GetNode(tree->root, hero);
+
+    if (!object)
+        {
+        printf("I don't find this hero! Try again\n");
+
+        return tree->status;
+        }
 
     Stack stk = {};
 
-    StackCtor(&stk);
+    StackCtor (&stk);
 
-    if (FindHero(tree, tree->root, hero, &node) == true)
-        {
-        DescribeHeroNode(tree, node, &stk);
+    FindPath (tree, object, &stk);
 
-        printf("%s? I find! He is ", node->data);
-
-        Node** nodes = (Node**)stk.stack_data;
-
-        Node* tmp_node  = nullptr;
-
-        size_t it = stk.stack_pos - 1;
-
-        do 
-            {
-            tmp_node = nodes[it];
-
-            if (tmp_node->left == nodes[it - 1])
-                {
-                printf("not ");
-                }
-
-            printf("%s/ ", tmp_node->data);
-            
-            it--;
-            }
-
-        while (it > 0 && it != (size_t)(-1));
-
-        printf("\n");
+    TellAbout (tree->root, &stk);
     
-        }
-    else
-        {
-        printf("I don't find this hero!\n");
-        }
+    putchar('\n');
 
     StackDtor(&stk);
 
     return tree->status;
+    }
+
+
+
+Type_error FindPath(Tree* tree, Node* node, Stack* stk)
+    {
+    if (node == nullptr) 
+        {
+        return tree->status;
+        }
+
+    while (node->parent != tree->root)
+        {
+        if (node == node->parent->left)
+            {
+            StackPush(stk, L_CHILD);
+
+            node = node->parent;
+            }
+
+        else
+            {
+            StackPush(stk, R_CHILD);
+
+            node = node->parent;
+            }
+        }
+
+    if (tree->root->left == node) 
+        {
+        StackPush(stk, L_CHILD);
+        }
+
+    if (tree->root->right == node) 
+        {
+        StackPush(stk, R_CHILD);
+        }
+
+    return tree->status;
+    }
+
+    
+
+void TellAbout(Node* node, Stack* stk)
+    {
+    Child way = L_CHILD;
+
+    StackPop(stk, (int*)&way);
+
+    if (way == L_CHILD)
+        {
+        printf("not %s", node->data);
+
+        node = node->left;
+        }
+
+    else
+        {
+        printf("%s", node->data);
+
+        node = node->right;
+        }
+
+    if (node->left && node->right)
+        {
+        printf (", ");
+
+        TellAbout (node, stk);
+        }
     }
 
 
@@ -358,117 +424,100 @@ Type_error CompareHeroes(Tree* tree)
         printf("Hero number %d: ", i + 1);
 
         GetLine(tree, &hero[i]);
-        }  
-
+        } 
 
     Stack stks[2]  = {};
 
     Node* nodes[2] = {};
 
-    bool find = true;
+    int count_again = 0;
 
     for (size_t i = 0; i < 2; i++)
         {
+        nodes[i] = GetNode(tree->root, hero[i]);
+
+        if (nodes[i] == nullptr) 
+            {
+            printf("I don't find the %d hero!\n", i + 1);
+
+            printf("Try again\n");
+
+            return tree->status;
+            }
+
         StackCtor(&stks[i]);
 
-        if (FindHero(tree, tree->root, hero[i], &nodes[i]) == false) 
-            {
-            find = false;
-
-            break;
-            }
+        FindPath(tree, nodes[i], &stks[i]);
         }
-    
-    if (find) 
+
+    Child way1 = L_CHILD;
+
+    Child way2 = L_CHILD;
+
+    StackPop(&stks[0], (int*)&way1);
+
+    StackPop(&stks[1], (int*)&way2);
+
+    int flag = 0;
+
+    Node* tmp_node = tree->root;
+
+    while (way1 == way2) 
         {
-        for (size_t i = 0; i < 2; i++)
-            {
-            DescribeHeroNode(tree, nodes[i], &stks[i]);
-            }
-
-        Node** Nodes[2]   = {};
-
-        Node* tmp_node[2] = {};
-
-        size_t it[2]      = {};
-
-        for (size_t i = 0; i < 2; i++)
-            {
-            Nodes[i]    = (Node**)stks[i].stack_data;
-
-            it[i]       = stks[i].stack_pos - 1;
-
-            tmp_node[i] = Nodes[i][it[i]];
-            }
-
-        int flag = 0;
-
-        while (tmp_node[0] == tmp_node[1] && tmp_node[0]->left == Nodes[0][it[0] - 1])
-            { 
-            if (flag == 0) 
-                {  
-                printf("%s and %s similar in that they ", nodes[0]->data, nodes[1]->data);
-                }
-
-            if (tmp_node[0]->left == Nodes[0][it[0] - 1])
-                {
-                printf("not ");
-                }
-            
-            printf("%s/ ", tmp_node[0]->data);
-
-            for (size_t i = 0; i < 2; i++)
-                {
-                it[i] = it[i] - 1;
-
-                tmp_node[i] = Nodes[i][it[i]];
-                }
-
-            flag++;
-            }  
-
         if (flag == 0) 
             {
-            printf("%s and %s same\n", nodes[0]->data, nodes[1]->data); 
+            printf("%s and %s similar in that they ", nodes[0]->data, nodes[1]->data);
+            }
+        
+        if (way1 == L_CHILD)
+            {
+            printf("not %s, ", tmp_node->data);
+
+            tmp_node = tmp_node->left;
             }
         
         else 
             {
-            for (size_t i = 0; i < 2; i++)
-                {
-                if (i == 0)
-                    {
-                    printf("but %s ", nodes[i]->data);
-                    }
+            printf("%s, ", tmp_node->data);
 
-                else
-                    {
-                    printf("and %s ",  nodes[i]->data);
-                    }
-
-                do  
-                    {
-                    tmp_node[i] = Nodes[i][it[i]];
-
-                    if (tmp_node[i]->left == Nodes[i][it[i] - 1])
-                        {
-                        printf("not ");
-                        }
-
-                    printf("%s/ ", tmp_node[i]->data);
-                    
-                    it[i]--;
-                    }
-                
-                while (it[i] > 0);
-
-                printf("\n");
-                }
+            tmp_node = tmp_node->right;
             }
 
-        for (size_t i = 0; i < 2; ++i)
+        if (stks[0].stack_pos == 0 && stks[1].stack_pos == 0) 
             {
-            StackDtor(&stks[i]);
-            }    
+            printf("They are same\n");
+            
+            return tree->status;
+            } 
+
+        StackPop(&stks[0], (int*)&way1);
+
+        StackPop(&stks[1], (int*)&way2);
+
+        flag++;
         }
+
+      
+    StackPush(&stks[0], way1);
+
+    StackPush(&stks[1], way2);
+
+    if (flag == 0) 
+        {
+        printf("They are nothing alike, but %s ", nodes[0]->data);
+        }
+
+    else 
+        {
+        printf("but %s ", nodes[0]->data);
+        }
+
+
+    TellAbout(tmp_node, &stks[0]);
+
+    printf(", and %s ", nodes[1]->data);
+
+    TellAbout(tmp_node, &stks[1]);
+    
+    putchar('\n');
     }

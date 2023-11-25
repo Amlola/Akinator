@@ -3,7 +3,7 @@
 
 void TreeCtor(Tree* tree)
     {   
-    tree->status = NO_ERROR;
+    tree->status = TREE_OK;
 
     tree->root = (Node*)calloc(1, sizeof(Node));
 
@@ -55,6 +55,8 @@ Type_error TreeInsert(Tree* tree, Node* node, Tree_type data, Child child)
 
     else
         {
+        tree->status |= TREE_CANT_HAVE_THIS_CHILD;
+
         return TREE_CANT_HAVE_THIS_CHILD; 
         } 
 
@@ -81,6 +83,12 @@ Type_error TreeDelete(Tree* tree, Node* node)
         TreeDelete(tree, node->right);
         }
 
+    node->right  = nullptr;
+
+    node->left   = nullptr;
+
+    node->parent = nullptr;
+
     free(node);  
  
     tree->size--; 
@@ -91,8 +99,13 @@ Type_error TreeDelete(Tree* tree, Node* node)
 
 Type_error TreePrefixPrint(Tree* tree, Node* node, FILE* file)
     {
+    // TODO: CHECK_TREE_ERROR
+    CHECKTREEERROR(tree);
+    
     if (node == nullptr) 
         {
+        tree->status |= NODE_PTR_IS_NULL;
+
         return NODE_PTR_IS_NULL;
         }
     
@@ -121,6 +134,8 @@ Type_error TreePostfixPrint(Tree* tree, Node* node, FILE* file)
     {
     if (node == nullptr) 
         {
+        tree->status |= NODE_PTR_IS_NULL;
+
         return NODE_PTR_IS_NULL;
         }
 
@@ -148,6 +163,8 @@ Type_error TreeInfixPrint(Tree* tree, Node* node, FILE* file)
     {
     if (node == nullptr) 
         {
+        tree->status |= NODE_PTR_IS_NULL;
+
         return NODE_PTR_IS_NULL;
         }
 
@@ -180,6 +197,8 @@ Type_error TreeDtor(Tree* tree)
     {
     if (tree->root == nullptr) 
         {
+        tree->status |= TREE_ROOT_IS_NULL;
+
         return TREE_ROOT_IS_NULL;
         }
 
@@ -190,6 +209,25 @@ Type_error TreeDtor(Tree* tree)
     tree->size = 0;
 
     return tree->status;
+    }
+
+
+
+Type_error CheckTreeLinks(Tree* tree, Node* node)
+    {    
+    if (node->left != nullptr && node->right != nullptr && (node->left->parent != node || node->right->parent != node))
+        {
+        tree->status |= TREE_LINKING_ERROR;
+        return TREE_LINKING_ERROR;
+        }
+
+    if (node->left != nullptr)
+        CheckTreeLinks(tree, node->left);
+    
+    if (node->right != nullptr)
+        CheckTreeLinks(tree, node->right);
+
+    return TREE_OK;
     }
 
 
@@ -211,62 +249,45 @@ bool TreeVerify(Tree* tree)
         tree->status != TREE_SIZE_LESS_THAN_ZERO;
         }
 
+    // TODO: ...
+    CheckTreeLinks(tree, tree->root);
+
     return tree->status;
     }
 
 
-void NodeDump(Node* node, size_t* number_of_node, Child child) 
+void NodeDump(Node* node, size_t* number_of_node, Child child, const char* color) 
     {
-    PrintGraphNode(node, number_of_node, child);
+    PrintGraphNode(node, number_of_node, child, color);
 
     size_t current_number_of_node = *number_of_node;
 
     if (node->left)
         {
-        PrintGraphEdge(current_number_of_node, ++(*number_of_node), L_CHILD);
+        PrintGraphEdge(current_number_of_node, ++(*number_of_node), L_CHILD, "lime");
 
-        NodeDump(node->left, number_of_node, L_CHILD);
+        NodeDump(node->left, number_of_node, L_CHILD, "lime");
         }
 
     if (node->right)
         {
-        PrintGraphEdge(current_number_of_node, ++(*number_of_node), R_CHILD);
+        PrintGraphEdge(current_number_of_node, ++(*number_of_node), R_CHILD, "aqua");
 
-        NodeDump(node->right, number_of_node, R_CHILD);
+        NodeDump(node->right, number_of_node, R_CHILD, "aqua");
         } 
     }
 
 
-void PrintGraphEdge(size_t from, size_t to, Child child) 
+void PrintGraphEdge(size_t from, size_t to, Child child, const char* color) 
     {
-    if (child == L_CHILD)
-        print("node%d->node%d [color = \"lime\"];\n", from, to);
-    else
-        print("node%d->node%d [color = \"aqua\"];\n", from, to);
+    print("node%d->node%d [color = \"%s\"];\n", from, to, color);
     }
 
 
-void PrintGraphNode(Node* node, size_t* number_of_node, Child child) 
+void PrintGraphNode(Node* node, size_t* number_of_node, Child child, const char* color) 
     {
-    if (*number_of_node == 0) 
-        {
-        print("node%d[shape=record, style=filled, fillcolor=\"red\", label=\" {ADDRESS: %p | DATA: %s | LEFT:%p | RIGHT: %p}\"];\n", 
-                                              *number_of_node, node, node->data, node->left, node->right);
-        }
-
-    else 
-        {
-        if (child == L_CHILD) 
-            {
-            print("node%d[shape=record, style=filled, fillcolor=\"lime\", label=\" {ADDRESS: %p | DATA: %s | LEFT: %p | RIGHT: %p}\"];\n", 
-                                              *number_of_node, node, node->data, node->left, node->right);
-            }
-        else 
-            {
-            print("node%d[shape=record, style=filled, fillcolor=\"aqua\", label=\" {ADDRESS: %p | DATA: %s | LEFT: %p | RIGHT: %p}\"];\n", 
-                                              *number_of_node, node, node->data, node->left, node->right);  
-            }
-        }
+    print("node%d[shape=record, style=filled, fillcolor=\"%s\", label=\" {ADDRESS: %p | DATA: %s | PARENT: %p | LEFT: %p | RIGHT: %p}\"];\n", 
+                                              *number_of_node, color, node, node->data, node->parent, node->left, node->right);
     }
 
 
@@ -282,13 +303,13 @@ void TreeDumpFunction(Tree* tree, const char* path, const char* signature, unsig
 
     fprintf(logfile, "<font size = \"+1\">line: %d\n</font>", line);
 
-    if (tree->status != NO_ERROR) 
+    if (tree->status != TREE_OK) 
         {
         for (size_t j = 0; j < NUMBER_OF_ERROR; j++)
             {
             if ((tree->status & (1 << j)))
                 {
-                fprintf(logfile, "<font color = \"red\">ERROR: %s\n</font>", ErrorArray[j + 1].NameError);
+                fprintf(logfile, "<font color = \"red\">ERROR: %s\n</font>", ErrorMas[j + 1].NameError);
                 }
             }
         }
@@ -297,7 +318,7 @@ void TreeDumpFunction(Tree* tree, const char* path, const char* signature, unsig
         {
         size_t number_of_node = 0;
 
-        graph_file = fopen("dotfile.dot", "wb");
+        graph_file = fopen("dotfile1.dot", "wb");
 
         static int dump_number = 1;
 
@@ -307,14 +328,14 @@ void TreeDumpFunction(Tree* tree, const char* path, const char* signature, unsig
 
         print("label = \"tree_dump from function %s, Tree/%s:%d\";\n", signature, path, line);
 
-        NodeDump(tree->root, &number_of_node, L_CHILD);
+        NodeDump(tree->root, &number_of_node, L_CHILD, "red");
 
         print("\n\n}");
 
         fclose(graph_file);
 
         char shell_command[MAX_COMMAND_LENGTH] = "";
-            sprintf(shell_command, "dot -v -Tpng D:/Cprojects/Tree/dotfile.dot -o D:/Cprojects/Tree/graph%d.png", dump_number);
+            sprintf(shell_command, "dot -v -Tpng dotfile1.dot -o graph%d.png", dump_number);
             system(shell_command);
 
         fprintf(logfile, "<img src=\"graph%d.png\">", dump_number);

@@ -9,6 +9,17 @@
 #include <math.h>
 
 
+#define CHECKTREEERROR(tree)                             \
+                    if (TreeVerify(tree) != TREE_OK)     \
+                        {                                \
+                        ON_DUMP                          \
+                            (                            \
+                            TreeDump(tree);              \
+                            )                            \
+                        return tree->status;             \
+                        }
+
+
 #ifdef DUMP
     #define ON_DUMP(...) __VA_ARGS__
     #define TreeDump(tree_ptr) TreeDumpFunction(tree_ptr, __FILE__, __PRETTY_FUNCTION__, __LINE__);
@@ -18,7 +29,7 @@
 #endif
 
 
-typedef const char* Tree_type;
+typedef char* Tree_type;
 
 
 typedef int Type_error;
@@ -26,13 +37,14 @@ typedef int Type_error;
 
 enum Tree_status
     {
-    NO_ERROR                      = 0,
+    TREE_OK                       = 0,
     TREE_IS_NULL                  = 1 << 0,
     TREE_ROOT_IS_NULL             = 1 << 1,
     NODE_PTR_IS_NULL              = 1 << 2,  
     TREE_CANT_HAVE_THIS_CHILD     = 1 << 3,
     TREE_SIZE_LESS_THAN_ZERO      = 1 << 4,
-    NUMBER_OF_ERROR               = 5
+    TREE_LINKING_ERROR            = 1 << 5,
+    NUMBER_OF_ERROR               = 6
     };
 
 
@@ -80,21 +92,22 @@ const int MAX_COMMAND_LENGTH = 125;
 #define SPECIFICATOR_TYPE "%s "
 
 
-struct ERROR
+struct TREE_STATUS
     {
     Tree_status CodeError;
     const char* NameError;
     };
 
 
-const ERROR ErrorArray[] = 
+const TREE_STATUS ErrorMas[] = 
     {
-    {NO_ERROR,                    "NO ERROR"},
-    {TREE_IS_NULL,                "NULL STACK"},
-    {TREE_ROOT_IS_NULL,           "NULL DATA"},
-    {NODE_PTR_IS_NULL,            "SIZE LESS THAN ZERO"},
-    {TREE_CANT_HAVE_THIS_CHILD,   "POSITION LESS THAN ZERO"},
-    {TREE_SIZE_LESS_THAN_ZERO,    "SIZE LESS THAN POSITION"}
+    {TREE_OK,                     "NO ERROR"},
+    {TREE_IS_NULL,                "TREE_IS_NUL"},
+    {TREE_ROOT_IS_NULL,           "TREE_ROOT_IS_NULL"},
+    {NODE_PTR_IS_NULL,            "NODE_PTR_IS_NULL"},
+    {TREE_CANT_HAVE_THIS_CHILD,   "TREE_CANT_HAVE_THIS_CHILD"},
+    {TREE_SIZE_LESS_THAN_ZERO,    "TREE_SIZE_LESS_THAN_ZERO"},
+    {TREE_LINKING_ERROR,          "TREE_LINKING_ERROR"}
     };
 
 
@@ -118,11 +131,11 @@ Type_error TreeDtor(Tree* tree);
 
 void TreeDumpFunction(Tree* tree, const char* path, const char* signature, unsigned line); 
 
-void NodeDump(Node* node, size_t* number_of_node, Child child); 
+void NodeDump(Node* node, size_t* number_of_node, Child child, const char* color);
 
-void PrintGraphEdge(size_t from, size_t to, Child child); 
+void PrintGraphEdge(size_t from, size_t to, Child child, const char* color); 
 
-void PrintGraphNode(Node* node, size_t* number_of_node, Child child); 
+void PrintGraphNode(Node* node, size_t* number_of_node, Child child, const char* color); 
 
 long long GetFileSize(FILE* file);
 
@@ -134,7 +147,4 @@ Type_error PrefixReadTree(Tree* tree, Node* node, char** ptr, char* end_ptr);
 
 Type_error TreeRead(Tree* tree, Text* data);
 
-
-
-
-
+Type_error CheckTreeLinks(Tree* tree, Node* node);

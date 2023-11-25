@@ -6,9 +6,12 @@
 #include <math.h>
 
 
-typedef char* Stack_type;
+typedef int Stack_type;
 typedef long long hash_type;
 typedef unsigned long long canary_type;
+
+
+static FILE* logfile_stack = nullptr;
 
 
 #define POISON_VALUE_FOR_ADRESS (Stack_type*)0xDED
@@ -100,10 +103,9 @@ const STACK_STATUS ErrorArray[] =
     };
 
 
-static FILE* logfile_stack = NULL;
 
+const int sz = 40;
 
-const int sz = 4;
 const int Size_extend = 2;
 
 

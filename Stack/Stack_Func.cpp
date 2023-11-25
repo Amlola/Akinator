@@ -15,26 +15,7 @@ void StackCtor(Stack* stk)
 
     stk->stack_status = STACK_OK;
 
-    stk->stack_data = ((Stack_type*)calloc(stk->stack_size * sizeof(Stack_type) + StackCanarySize(), sizeof(char)));
-
-    stk->stack_data = (Stack_type*)((char*)(stk->stack_data) + sizeof(canary_type));
-
-    ON_CANARY
-        (
-        LEFTCANARYDATA   = 0xDEDBEEF;
-        RIGHTCANARYDATA  = 0xDEDBEEF;
-
-        stk->LeftCanary  = 0xDEDBEEF;
-        stk->RightCanary = 0xDEDBEEF;
-        )
-
-    FillPoisonValue(stk);
-
-    ON_HASH
-        (
-        stk->hash_stack = CalculateHashStack (stk);
-        stk->hash_data  = CalculateHashData  (stk);
-        )
+    stk->stack_data = ((Stack_type*)calloc(stk->stack_size, sizeof(char)));
     }
 
 
@@ -51,12 +32,6 @@ int StackPush(Stack* stk, Stack_type value)
     stk->stack_data[stk->stack_pos] = value;
     stk->stack_pos++;
 
-    ON_HASH
-        (
-        stk->hash_stack = CalculateHashStack (stk);
-        stk->hash_data  = CalculateHashData  (stk);
-        )
-
     CHECKERROR(stk);
 
     return stk->stack_status;
@@ -72,30 +47,17 @@ static int StackResize(Stack* stk, int stack_Newsize)
         return WRONG_NEW_SIZE;
         }
         
-    Stack_type* dataResize = ((Stack_type*)calloc(stack_Newsize * sizeof(*stk->stack_data) + StackCanarySize(), sizeof(char)));
-
-    dataResize = (Stack_type*)((char*)(dataResize) + sizeof(canary_type));
+    Stack_type* dataResize = ((Stack_type*)calloc(stack_Newsize, sizeof(char)));
 
     Copy(stk, dataResize);
 
-    free((Stack_type*)((char*) stk->stack_data - sizeof(canary_type)));
+    free(stk->stack_data);
 
     stk->stack_data = dataResize;
+
     stk->stack_size = stack_Newsize;
 
-    ON_CANARY
-        (
-        LEFTCANARYDATA  = 0xDEDBEEF;
-        RIGHTCANARYDATA = 0xDEDBEEF;
-        )
-
     FillPoisonValue(stk);
-
-    ON_HASH
-        (
-        stk->hash_stack = CalculateHashStack(stk);
-        stk->hash_data  = CalculateHashData(stk);
-        )
 
 	CHECKERROR(stk);
 
@@ -139,21 +101,9 @@ int StackPop(Stack* stk, Stack_type* retvalue)
 
     if (stk->stack_pos < stk->stack_size / 4)
         {
-        ON_HASH
-            (
-            stk->hash_stack = CalculateHashStack(stk);
-            stk->hash_data  = CalculateHashData(stk);
-            )
-
         StackResize(stk, stk->stack_size / 2); //обработать StackResize под ошибки
         }
-
-    ON_HASH
-        (
-        stk->hash_stack = CalculateHashStack(stk);
-        stk->hash_data  = CalculateHashData(stk);
-        )
-    
+        
     CHECKERROR(stk);
 
     return stk->stack_status;
@@ -176,7 +126,7 @@ void StackDtor(Stack* stk)
     {
     if (stk->stack_data != nullptr)
         {
-        free((Stack_type*)((char*) stk->stack_data - sizeof(canary_type)));
+        free(stk->stack_data);
         stk->stack_data = POISON_VALUE_FOR_ADRESS;
         }
 
@@ -186,7 +136,6 @@ void StackDtor(Stack* stk)
         stk->hash_data  = 0xABCDEEEF;
         )
 
-    fclose(logfile_stack);
     }
 
 
