@@ -176,7 +176,7 @@ Type_error GetLine(Tree* tree, char string[], size_t MAX_INPUT_LEN)
 
     char ans[MAX_ANS_LEN] = "";
 
-    scanf("%s", &ans);
+    fgets(ans, MAX_ANS_LEN, stdin);
 
     fflush(stdin);
 
